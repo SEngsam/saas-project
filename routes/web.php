@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +25,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+Route::get('/subscriptions', function () {
+    return Inertia::render('Subscriptions/Index');
+})->middleware(['auth']);
+
+Route::middleware('auth')->group(function () {
+    Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
+    Route::get('/plans/form/{plan?}', [PlanController::class, 'form'])->name('plans.form');
+    Route::post('/plans', [PlanController::class, 'save'])->name('plans.store');
+    Route::put('/plans/{id}', [PlanController::class, 'save'])->name('plans.update');
+    Route::delete('/plans/{id}', [PlanController::class, 'destroy'])->name('plans.destroy');
+
+});
+
+require __DIR__ . '/auth.php';
