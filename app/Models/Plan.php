@@ -16,4 +16,8 @@ class Plan extends Model
         'status',
         'assignee',
     ];
+    public function sales()
+{
+    return $this->hasMany(Sale::class);
+}
 }

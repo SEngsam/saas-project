@@ -46,11 +46,27 @@ class User extends Authenticatable
         ];
     }
 
-    public function subscriptions() {
-    return $this->hasMany(Subscription::class);
-}
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
 
-public function activeSubscription() {
-    return $this->hasOne(Subscription::class)->where('status', 'active');
-}
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)->where('status', 'active');
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+    public function currentPlan()
+    {
+        return $this->belongsTo(Plan::class, 'current_plan_id');
+    }
 }

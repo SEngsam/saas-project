@@ -43,4 +43,8 @@ class Subscription extends Model
             && (!$this->ends_at || $this->ends_at->isFuture());
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

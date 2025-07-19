@@ -8,6 +8,7 @@ class PlanRepository implements PlanRepositoryInterface
 {
     public function all()
     {
+
         return Plan::all();
     }
 
