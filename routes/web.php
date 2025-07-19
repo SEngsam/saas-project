@@ -44,22 +44,19 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->as('admin.')->group(fu
     Route::resource('subscriptions', SubscriptionController::class);
 });
 
-Route::middleware(['auth'])->as('user.')->group(
-    function () {
-        Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('/subscriptions', SubscriptionController::class);
-        Route::get('/billing-history', [BillingHistoryController::class, 'index'])->name('billing-history');
 
-        Route::get('/checkout', [SubscriptionController::class, 'showCheckout'])->name('checkout.show');
-        Route::post('/checkout', [SubscriptionController::class, 'checkout'])->name('checkout.process');
-        Route::get('/test-auth', function () {
-            return response()->json(['user' => Auth::user()]);
-        });
+Route::middleware(['auth'])->as('user.')->group(function () {
+    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+    Route::resource('/subscriptions', SubscriptionController::class);
+    Route::get('/billing-history', [BillingHistoryController::class, 'index'])->name('billing-history');
 
-     Route::get('/change-plan', [SubscriptionController::class, 'changePlanView'])->name('subscription.change-plan-view');
-    Route::put('/change-plan', [SubscriptionController::class, 'changePlan'])->name('subscription.change-plan');}
-
-);
+    Route::prefix('subscription')->as('subscription.')->group(function () {
+        Route::get('/change-plan', [SubscriptionController::class, 'changePlanView'])->name('change-plan-view');
+        Route::get('/change-plan/confirm', [SubscriptionController::class, 'confirmPlanChange'])->name('confirm');
+        Route::get('/checkout-view', [SubscriptionController::class, 'showCheckout'])->name('checkout-view');
+        Route::post('/checkout', [SubscriptionController::class, 'checkout'])->name('checkout');
+    });
+});
 
 
 require __DIR__ . '/auth.php';

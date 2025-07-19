@@ -3,6 +3,7 @@ import Layout from '@/Layouts/Layout.vue';
 const props = defineProps({
     payments: Array
 })
+console.log(props.payments[0].plan.price)
 </script>
 
 <template>
@@ -22,7 +23,7 @@ const props = defineProps({
                 <tbody>
                     <tr v-for="(payment, index) in payments" :key="payment.id">
                         <td>{{ index + 1 }}</td>
-                        <td>${{ payment.amount }}</td>
+                        <td>${{ payment.plan.price }}</td>
                         <td>{{ payment.payment_method }}</td>
                         <td>{{ new Date(payment.created_at).toLocaleDateString() }}</td>
                     </tr>

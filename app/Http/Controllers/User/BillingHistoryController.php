@@ -11,14 +11,10 @@ class BillingHistoryController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+       $billingHistories = Auth::user()->subscriptions()->with('plan')->latest()->get();
 
-        $payments = $user->payments()
-            ->latest()
-            ->get(['id', 'amount', 'payment_method', 'created_at']);
-
-        return Inertia::render('User/BillingHistory', [
-            'payments' => $payments
-        ]);
+    return inertia('User/BillingHistory', [
+        'payments' => $billingHistories
+    ]);
     }
 }

@@ -1,55 +1,52 @@
 <script setup>
-import { ref } from 'vue'
-import { useForm } from '@inertiajs/inertia-vue3'
+import Layout from '@/Layouts/Layout.vue'
+import { Head, useForm, usePage } from '@inertiajs/inertia-vue3'
+import { computed } from 'vue'
 
-const plans = $page.props.plans || []
+const page = usePage()
+const plan = computed(() => page.props.plan)
+const from = computed(() => page.props.from)
 
 const form = useForm({
-  plan_id: plans.length > 0 ? plans[0].id : null,
-  payment_method: 'manual',
+  plan_id: plan.value.id,
+  payment_method: 'paypal', // مبدئيًا فقط، يمكنك تغييره لاحقًا
 })
 
 function submit() {
-  form.post('/checkout', {
-    onSuccess: () => {
-      alert('Subscription successful!')
-    },
-    onError: () => {
-      alert('Failed to subscribe.')
-    }
+  form.post(route('user.subscription.pay'), {
+    preserveScroll: true,
   })
 }
 </script>
 
 <template>
-  <div class="max-w-md mx-auto p-4">
-    <h1 class="text-2xl mb-4">Subscribe to a Plan</h1>
-
-    <label for="plan">Choose a Plan:</label>
-    <select id="plan" v-model="form.plan_id" class="w-full mb-4 p-2 border rounded">
-      <option v-for="plan in plans" :key="plan.id" :value="plan.id">
-        {{ plan.name }} — ${{ plan.price }}
-      </option>
-    </select>
-
-    <label for="payment_method">Payment Method:</label>
-    <select id="payment_method" v-model="form.payment_method" class="w-full mb-4 p-2 border rounded">
-      <option value="manual">Manual (Fake Payment)</option>
-      <!-- لاحقًا يمكن تضيف بوابات الدفع هنا -->
-    </select>
-
-    <button
-      @click.prevent="submit"
-      :disabled="form.processing"
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-    >
-      Subscribe
-    </button>
-
-    <div v-if="form.errors" class="mt-4 text-red-600">
-      <div v-for="(error, field) in form.errors" :key="field">
-        {{ error }}
+  <Layout>
+    <Head title="Checkout" />
+    <div class="container mt-5">
+      <h1 class="mb-4">Checkout</h1>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5>{{ plan.name }}</h5>
+          <p>${{ plan.price }}</p>
+          <p>{{ plan.description }}</p>
+        </div>
       </div>
+
+      <form @submit.prevent="submit">
+        <input type="hidden" v-model="form.plan_id" />
+
+        <div class="mb-3">
+          <label class="form-label">Payment Method</label>
+          <select class="form-select" v-model="form.payment_method">
+            <option value="paypal">PayPal</option>
+            <option value="credit_card">Credit Card</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" type="submit" :disabled="form.processing">
+          Pay Now
+        </button>
+      </form>
     </div>
-  </div>
+  </Layout>
 </template>

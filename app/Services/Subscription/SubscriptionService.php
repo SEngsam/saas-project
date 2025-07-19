@@ -8,6 +8,7 @@ use App\Repositories\PlanRepository;
 use App\Models\Subscription;
 use App\Models\User;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionService
 {
@@ -22,29 +23,35 @@ class SubscriptionService
 
     public function subscribeUserToPlan(int $userId, int $planId, array $paymentData): Subscription
     {
-        $user = $this->userRepo->find($userId);
-        $plan = $this->planRepo->find($planId);
+        try {
+            $user = $this->userRepo->find($userId);
+            $plan = $this->planRepo->find($planId);
 
-        if (!$user) {
-            throw new Exception("User not found");
+            Log::info("🔔 Simulated payment for user {$user->id} using method: " . ($options['method'] ?? 'unknown'));
+
+            if (!$user) {
+                throw new Exception("User not found");
+            }
+            if (!$plan) {
+                throw new Exception("Plan not found");
+            }
+
+
+            $subscription = Subscription::create([
+                'user_id' => $user->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'starts_at' => now(),
+                'ends_at' => now()->addMonth(),
+                'payment_method' => $paymentData['method'] ?? 'manual',
+                'payment_status' => 'completed',
+            ]);
+
+
+            return $subscription;
+        } catch (\Exception $e) {
+            dd('ERROR:', $e->getMessage());
         }
-        if (!$plan) {
-            throw new Exception("Plan not found");
-        }
-
-
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'plan_id' => $plan->id,
-            'status' => 'active',
-            'starts_at' => now(),
-            'ends_at' => now()->addMonth(),
-            'payment_method' => $paymentData['method'] ?? 'manual',
-            'payment_status' => 'paid',
-        ]);
-
-
-        return $subscription;
     }
     public function changeUserPlan(User $user, int $planId): void
     {
@@ -52,7 +59,7 @@ class SubscriptionService
 
         $user->subscription()->update([
             'plan_id' => $plan->id,
-            'status' => 'active', // optional
+            'status' => 'active',
             'updated_at' => now(),
         ]);
     }

@@ -19,47 +19,60 @@ class SubscriptionController extends Controller
         $this->subscriptionService = $subscriptionService;
     }
 
-    public function checkout(Request $request)
-    {
-        $request->validate([
-            'plan_id' => 'required|integer|exists:plans,id',
-            'payment_method' => 'required|string',
-        ]);
-
-        try {
-            $subscription = $this->subscriptionService->subscribeUserToPlan(
-                Auth::user()->id,
-                $request->plan_id,
-                ['method' => $request->payment_method]
-            );
-
-            return redirect()->route('user.dashboard')->with('success', 'Subscription created successfully!');
-        } catch (\Exception $e) {
-            return back()->withErrors($e->getMessage());
-        }
-    }
-
-    public function showCheckout()
-    {
-        $plans = app(PlanRepository::class)->all();
-
-        return Inertia::render('Checkout', [
-            'plans' => $plans,
-        ]);
-    }
-
     public function changePlanView(PlanRepository $planRepo)
     {
-
         return Inertia::render('User/ChangePlan', [
-            'plans' => $planRepo->all(), // Array of available plans
+            'plans' => $planRepo->all(),
             'current_plan_id' => Auth::user()->subscription?->plan_id,
         ]);
     }
 
-    public function changePlan(ChangePlanRequest $request, SubscriptionService $service)
+    public function confirmPlanChange(Request $request, PlanRepository $repo)
     {
-        $service->changeUserPlan(Auth::user(), $request->plan_id);
-        return redirect()->route('user.dashboard')->with('success', 'Plan updated successfully.');
+        $request->validate([
+            'plan_id' => 'required|integer|exists:plans,id',
+        ]);
+
+        $newPlan = $repo->find($request->plan_id);
+        $currentPlan = Auth::user()->subscription?->plan;
+
+        return Inertia::render('User/ConfirmPlanChange', [
+            'new_plan' => $newPlan,
+            'current_plan' => $currentPlan,
+        ]);
+    }
+
+    public function showCheckout(Request $request, PlanRepository $repo)
+    {
+        $request->validate([
+            'plan_id' => 'required|integer|exists:plans,id',
+        ]);
+
+        return Inertia::render('User/FakeCheckout', [
+            'plan' => $repo->find($request->plan_id),
+        ]);
+    }
+
+    public function checkout(Request $request)
+    {
+
+        $request->validate([
+            'plan_id' => 'required|integer|exists:plans,id',
+            'payment_method' => 'nullable|string',
+        ]);
+
+        try {
+
+
+            $this->subscriptionService->subscribeUserToPlan(
+                Auth::id(),
+                $request->plan_id,
+                ['method' => $request->payment_method ?? 'fake']
+            );
+
+            return redirect()->route('user.dashboard')->with('success', 'Subscription completed!');
+        } catch (\Exception $e) {
+            return back()->withErrors($e->getMessage());
+        }
     }
 }
